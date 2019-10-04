@@ -29,7 +29,7 @@ public class TestSubWorkflow {
     @Before
     public void setup() {
         workflowExecutor = mock(WorkflowExecutor.class);
-        subWorkflow = new SubWorkflow();
+        subWorkflow = new SubWorkflow(null);
     }
 
     @Test
@@ -260,7 +260,7 @@ public class TestSubWorkflow {
 
     @Test
     public void testIsAsync() {
-        SubWorkflow subWorkflow = new SubWorkflow();
+        SubWorkflow subWorkflow = new SubWorkflow(null);
         assertFalse(subWorkflow.isAsync());
     }
 }

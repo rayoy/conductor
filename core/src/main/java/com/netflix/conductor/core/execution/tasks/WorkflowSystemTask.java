@@ -21,11 +21,15 @@ package com.netflix.conductor.core.execution.tasks;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 import com.netflix.conductor.common.run.Workflow;
+import com.netflix.conductor.core.execution.TerminateWorkflowException;
 import com.netflix.conductor.core.execution.WorkflowExecutor;
+import com.netflix.conductor.core.utils.ExternalPayloadStorageUtils;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author Viren
@@ -36,11 +40,19 @@ public class WorkflowSystemTask {
 	private static Map<String, WorkflowSystemTask> registry = new HashMap<>();
 	
 	private String name;
+	private ExternalPayloadStorageUtils externalPayloadStorageUtils;
 	
 	public WorkflowSystemTask(String name) {
 		this.name = name;
+		this.externalPayloadStorageUtils = null;
+
 		registry.put(name, this);
 		SystemTaskWorkerCoordinator.add(this);
+	}
+
+	public WorkflowSystemTask(String name, ExternalPayloadStorageUtils externalPayloadStorageUtils) {
+		this(name);
+		this.externalPayloadStorageUtils = externalPayloadStorageUtils;
 	}
 
 	/**
@@ -128,5 +140,30 @@ public class WorkflowSystemTask {
 	public static Collection<WorkflowSystemTask> all() {
 		return registry.values();
 	}
-	
+
+	private Map<String, Object> getPayload(Supplier<Map<String, Object>> defaultPayloadSupplier,
+										   Supplier<String> payloadPathSupplier) {
+		Map<String, Object> payload = defaultPayloadSupplier.get();
+		if(payload == null) {
+			String externalPayloadPath = payloadPathSupplier.get();
+			if(externalPayloadPath == null) {
+				throw new TerminateWorkflowException("Could not find neither the payload not an external-path");
+			}
+			else if(externalPayloadStorageUtils == null) {
+				throw new TerminateWorkflowException("Found externalStorageLocation on a system-task which " +
+						"is not setup to download external payload");
+			} else {
+				payload = externalPayloadStorageUtils.downloadPayload(payloadPathSupplier.get());
+			}
+		}
+		return payload;
+	}
+
+	Map<String, Object> getInputPayload(Task task) {
+		return this.getPayload(task::getInputData, task::getExternalInputPayloadStoragePath);
+	}
+
+	Map<String, Object> getOutputPayload(Task task) {
+		return this.getPayload(task::getOutputData, task::getExternalOutputPayloadStoragePath);
+	}
 }
