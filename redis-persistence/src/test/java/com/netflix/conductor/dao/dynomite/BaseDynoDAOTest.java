@@ -1,6 +1,7 @@
 package com.netflix.conductor.dao.dynomite;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.conductor.common.utils.JsonMapperProvider;
 import com.netflix.conductor.core.config.Configuration;
 import com.netflix.conductor.dyno.DynoProxy;
 import org.junit.Before;
@@ -18,8 +19,7 @@ public class BaseDynoDAOTest {
     @Mock
     private DynoProxy dynoClient;
 
-    @Mock
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = JsonMapperProvider.getInstanceWithAlways();
 
     @Mock
     private Configuration config;
@@ -28,7 +28,7 @@ public class BaseDynoDAOTest {
 
     @Before
     public void setUp() {
-        this.baseDynoDAO = new BaseDynoDAO(dynoClient, objectMapper, config);
+        this.baseDynoDAO = new BaseDynoDAO(dynoClient, config);
     }
 
     @Test

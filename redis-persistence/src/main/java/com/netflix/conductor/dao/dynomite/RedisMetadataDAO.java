@@ -15,7 +15,6 @@
  */
 package com.netflix.conductor.dao.dynomite;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.inject.Singleton;
 import com.netflix.conductor.annotations.Trace;
@@ -61,8 +60,8 @@ public class RedisMetadataDAO extends BaseDynoDAO implements MetadataDAO {
     private Map<String, TaskDef> taskDefCache = new HashMap<>();
     private static final String className = RedisMetadataDAO.class.getSimpleName();
     @Inject
-    public RedisMetadataDAO(DynoProxy dynoClient, ObjectMapper objectMapper, Configuration config) {
-        super(dynoClient, objectMapper, config);
+    public RedisMetadataDAO(DynoProxy dynoClient, Configuration config) {
+        super(dynoClient, config);
         refreshTaskDefs();
         int cacheRefreshTime = config.getIntProperty("conductor.taskdef.cache.refresh.time.seconds", 60);
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(()->refreshTaskDefs(), cacheRefreshTime, cacheRefreshTime, TimeUnit.SECONDS);
@@ -329,19 +328,19 @@ public class RedisMetadataDAO extends BaseDynoDAO implements MetadataDAO {
 		recordRedisDaoRequests("getAllEventHandlers");
 		return handlers;
 	}
-	
+
 	private void index(EventHandler eh) {
 		String event = eh.getEvent();
 		String key = nsKey(EVENT_HANDLERS_BY_EVENT, event);
 		dynoClient.sadd(key, eh.getName());
 	}
-	
+
 	private void removeIndex(EventHandler eh) {
 		String event = eh.getEvent();
 		String key = nsKey(EVENT_HANDLERS_BY_EVENT, event);
 		dynoClient.srem(key, eh.getName());
 	}
-	
+
 	@Override
 	public List<EventHandler> getEventHandlersForEvent(String event, boolean activeOnly) {
 		String key = nsKey(EVENT_HANDLERS_BY_EVENT, event);
@@ -361,7 +360,7 @@ public class RedisMetadataDAO extends BaseDynoDAO implements MetadataDAO {
 		}
 		return handlers;
 	}
-	
+
 	private EventHandler getEventHandler(String name) {
 		EventHandler eventHandler = null;
 		String json = dynoClient.hget(nsKey(EVENT_HANDLERS), name);

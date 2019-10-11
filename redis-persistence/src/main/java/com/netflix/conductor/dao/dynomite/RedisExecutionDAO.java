@@ -15,7 +15,6 @@
  */
 package com.netflix.conductor.dao.dynomite;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.inject.Singleton;
@@ -75,8 +74,8 @@ public class RedisExecutionDAO extends BaseDynoDAO implements ExecutionDAO {
 	private final static String EVENT_EXECUTION = "EVENT_EXECUTION";
 
 	@Inject
-	public RedisExecutionDAO(DynoProxy dynoClient, ObjectMapper objectMapper, Configuration config) {
-		super(dynoClient, objectMapper, config);
+	public RedisExecutionDAO(DynoProxy dynoClient, Configuration config) {
+		super(dynoClient, config);
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.introspect.BasicBeanDescription;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
@@ -12,8 +13,11 @@ import com.google.protobuf.Message;
 
 import javax.inject.Provider;
 import java.io.IOException;
+import java.util.Objects;
 
 public class JsonMapperProvider implements Provider<ObjectMapper> {
+    private static ObjectMapper objectMapper;
+
     public JsonMapperProvider() {}
 
     /**
@@ -111,11 +115,11 @@ public class JsonMapperProvider implements Provider<ObjectMapper> {
                 JsonNode value = root.get(JSON_VALUE);
 
                 if (type == null || !type.isTextual()) {
-                    throw ctxt.reportMappingException("invalid '@type' field when deserializing ProtoBuf Any object");
+                    ctxt.reportMappingException("invalid '@type' field when deserializing ProtoBuf Any object");
                 }
 
                 if (value == null || !value.isTextual()) {
-                    throw ctxt.reportMappingException("invalid '@value' field when deserializing ProtoBuf Any object");
+                    ctxt.reportMappingException("invalid '@value' field when deserializing ProtoBuf Any object");
                 }
 
                 return Any.newBuilder()
@@ -140,6 +144,25 @@ public class JsonMapperProvider implements Provider<ObjectMapper> {
         objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.registerModule(new JsonProtoModule());
+        return objectMapper;
+    }
+
+    /**
+     * Creates an ObjectMapper with configuration to allow null values and other defaults.
+     * Okay to be a leaky singleton.
+     * @return
+     */
+    public static ObjectMapper getInstanceWithAlways() {
+        if (Objects.nonNull(objectMapper)) {
+            return objectMapper;
+        }
+
+        objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
         objectMapper.registerModule(new JsonProtoModule());
         return objectMapper;
     }

@@ -17,6 +17,7 @@ package com.netflix.conductor.dao.dynomite;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.conductor.common.utils.JsonMapperProvider;
 import com.netflix.conductor.core.config.Configuration;
 import com.netflix.conductor.dyno.DynoProxy;
 import com.netflix.conductor.metrics.Monitors;
@@ -33,7 +34,7 @@ public class BaseDynoDAO {
 
     protected DynoProxy dynoClient;
 
-    protected ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper = JsonMapperProvider.getInstanceWithAlways();
 
     private String domain;
 
@@ -41,9 +42,8 @@ public class BaseDynoDAO {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected BaseDynoDAO(DynoProxy dynoClient, ObjectMapper objectMapper, Configuration config) {
+    protected BaseDynoDAO(DynoProxy dynoClient, Configuration config) {
         this.dynoClient = dynoClient;
-        this.objectMapper = objectMapper;
         this.config = config;
         this.domain = config.getProperty("workflow.dyno.keyspace.domain", null);
     }

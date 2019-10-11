@@ -45,7 +45,6 @@ import static org.junit.Assert.assertTrue;
 public class RedisExecutionDAOTest extends ExecutionDAOTest {
 
     private RedisExecutionDAO executionDAO;
-	private static ObjectMapper objectMapper = new JsonMapperProvider().get();
 
     @SuppressWarnings("unchecked")
     @Before
@@ -54,7 +53,7 @@ public class RedisExecutionDAOTest extends ExecutionDAOTest {
         JedisCommands jedisMock = new JedisMock();
         DynoProxy dynoClient = new DynoProxy(jedisMock);
 
-        executionDAO = new RedisExecutionDAO(dynoClient, objectMapper, config);
+        executionDAO = new RedisExecutionDAO(dynoClient, config);
     }
 
     @Test
